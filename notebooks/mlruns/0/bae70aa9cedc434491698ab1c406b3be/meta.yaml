@@ -1,0 +1,15 @@
+artifact_uri: file:///c:/Users/HP/Desktop/Challenges/Adey-Innovations-Inc/notebooks/mlruns/0/bae70aa9cedc434491698ab1c406b3be/artifacts
+end_time: 1739274683879
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: bae70aa9cedc434491698ab1c406b3be
+run_name: resilient-mouse-804
+run_uuid: bae70aa9cedc434491698ab1c406b3be
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1739274667643
+status: 3
+tags: []
+user_id: HP

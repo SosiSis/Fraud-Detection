@@ -1,0 +1,15 @@
+artifact_uri: file:///c:/Users/HP/Desktop/Challenges/Adey-Innovations-Inc/notebooks/mlruns/0/6031bb4da9d3436bbf7becfc9f0647dd/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 6031bb4da9d3436bbf7becfc9f0647dd
+run_name: learned-dove-449
+run_uuid: 6031bb4da9d3436bbf7becfc9f0647dd
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1739274683911
+status: 1
+tags: []
+user_id: HP
