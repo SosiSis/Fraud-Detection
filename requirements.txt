@@ -1,0 +1,33 @@
+# Core ML and Data Science
+pandas==2.2.2
+numpy==1.26.4
+scikit-learn==1.5.1
+joblib==1.4.2
+
+# Deep Learning
+tensorflow==2.17.0
+
+# Model Explainability
+shap==0.46.0
+lime==0.2.0.1
+
+# Web Framework
+Flask==3.0.3
+Flask-CORS==4.0.1
+
+# Data Visualization
+matplotlib==3.9.2
+seaborn==0.13.2
+plotly==5.24.1
+
+# Dashboard
+dash==2.18.1
+dash-bootstrap-components==1.6.0
+
+# MLOps
+mlflow==2.16.2
+
+# Utilities
+python-dotenv==1.0.1
+gunicorn==23.0.0
+requests==2.32.3
