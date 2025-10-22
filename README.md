@@ -104,8 +104,8 @@ fraud-detection-system/
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd fraud-detection-system
+   git clone https://github.com/SosiSis/Fraud-Detection
+   cd Fraud-Detection
    ```
 
 2. **Install dependencies**
@@ -387,7 +387,7 @@ For questions, issues, or contributions:
 
 - **Issues**: Use GitHub Issues for bug reports and feature requests
 - **Discussions**: Use GitHub Discussions for general questions
-- **Email**: [Your email for direct contact]
+- **Email**: [sosinasisay29@gmail.com]
 
 ---
 
