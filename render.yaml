@@ -1,22 +1,22 @@
 services:
   - type: web
     name: fraud-api
-    env: python
-    buildCommand: "pip install -r requirements.txt && python create_sample_data.py && python train_models_for_api.py"
-    startCommand: "gunicorn serve_model:app"
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: "gunicorn serve_model:app"
     healthCheckPath: /health
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.9.19
+      - key: PORT
+        value: 5000
 
   - type: web
     name: fraud-dashboard
-    env: python
-    buildCommand: "pip install -r requirements.txt && python create_sample_data.py"
-    startCommand: "gunicorn dashboard_app:server"
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: "gunicorn dashboard_app:server"
     envVars:
-      - key: PYTHON_VERSION
-        value: 3.9.19
+      - key: PORT
+        value: 8050
       - key: API_BASE_URL
         fromService:
           type: web
