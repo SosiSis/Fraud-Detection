@@ -17,13 +17,17 @@ import dash_bootstrap_components as dbc
 from datetime import datetime, timedelta
 import requests
 import json
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Configure the dashboard
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 app.title = "Advanced Fraud Detection Dashboard"
 
 # API Configuration
-API_BASE_URL = "http://localhost:5000"
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:5000")
 
 # Load sample data for dashboard
 def load_dashboard_data():
@@ -59,7 +63,7 @@ app.layout = dbc.Container([
     # Header
     dbc.Row([
         dbc.Col([
-            html.H1("🛡️ Advanced Fraud Detection Dashboard", 
+            html.H1("  Advanced Fraud Detection Dashboard", 
                    className="text-center mb-4 text-primary"),
             html.Hr(),
         ], width=12)

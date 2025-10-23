@@ -1,4 +1,4 @@
-# 🛡️ Advanced Fraud Detection System
+#   Advanced Fraud Detection System
 
 ## 10 Academy: Artificial Intelligence Mastery - Week 8&9 Challenge
 

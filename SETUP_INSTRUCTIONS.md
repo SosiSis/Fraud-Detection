@@ -149,4 +149,4 @@ If you encounter any issues:
 
 ---
 
-🎉 **Ready to detect fraud like a pro!** 🛡️
+🎉 **Ready to detect fraud like a pro!**  

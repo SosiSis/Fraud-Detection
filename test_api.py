@@ -8,9 +8,14 @@ import json
 import time
 import sys
 from datetime import datetime
+from dotenv import load_dotenv
+import os
+
+# Load environment variables
+load_dotenv()
 
 # API Configuration
-API_BASE_URL = "http://localhost:5000"
+API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:5000")
 TIMEOUT = 30
 
 def test_health_check():

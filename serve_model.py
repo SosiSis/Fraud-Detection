@@ -251,7 +251,7 @@ def home():
     </head>
     <body>
         <div class="header">
-            <h1>🛡️ Advanced Fraud Detection API</h1>
+            <h1>  Advanced Fraud Detection API</h1>
             <p>Professional fraud detection system for e-commerce and credit card transactions</p>
             <p class="status">Status: {{ status }}</p>
         </div>
