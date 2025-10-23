@@ -170,19 +170,19 @@ def main():
     # Create Fraud_Data.csv
     print("Creating Fraud_Data.csv...")
     fraud_data = create_fraud_data()
-    fraud_data.to_csv('/workspace/data/Fraud_Data.csv', index=False)
+    fraud_data.to_csv('data/Fraud_Data.csv', index=False)
     print(f"Created Fraud_Data.csv with {len(fraud_data)} records")
     
     # Create IpAddress_to_Country.csv
     print("Creating IpAddress_to_Country.csv...")
     ip_data = create_ip_country_data()
-    ip_data.to_csv('/workspace/data/IpAddress_to_Country.csv', index=False)
+    ip_data.to_csv('data/IpAddress_to_Country.csv', index=False)
     print(f"Created IpAddress_to_Country.csv with {len(ip_data)} records")
     
     # Create creditcard.csv
     print("Creating creditcard.csv...")
     credit_data = create_creditcard_data()
-    credit_data.to_csv('/workspace/data/creditcard.csv', index=False)
+    credit_data.to_csv('data/creditcard.csv', index=False)
     print(f"Created creditcard.csv with {len(credit_data)} records")
     
     print("All datasets created successfully!")

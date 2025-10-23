@@ -80,15 +80,28 @@ def load_models():
         # Initialize SHAP explainers
         if fraud_model is not None:
             try:
-                fraud_explainer = shap.TreeExplainer(fraud_model)
-                logger.info("Initialized SHAP explainer for fraud model")
+                # Use TreeExplainer for tree-based models, otherwise fallback to a more general explainer
+                model_type_name = str(type(fraud_model))
+                if 'RandomForest' in model_type_name or 'DecisionTree' in model_type_name or 'XGB' in model_type_name or 'LGBM' in model_type_name:
+                    fraud_explainer = shap.TreeExplainer(fraud_model)
+                    logger.info("Initialized SHAP TreeExplainer for fraud model")
+                else:
+                    # KernelExplainer is a model-agnostic explainer. It requires a background dataset.
+                    # For simplicity, we use a zeroed-out array. For better accuracy, a sample of the training data is recommended.
+                    fraud_explainer = shap.KernelExplainer(fraud_model.predict_proba, np.zeros((1, len(FRAUD_FEATURES))))
+                    logger.info(f"Initialized SHAP KernelExplainer for fraud model of type {model_type_name}")
             except Exception as e:
                 logger.warning(f"Could not initialize fraud SHAP explainer: {e}")
                 
         if credit_model is not None:
             try:
-                credit_explainer = shap.TreeExplainer(credit_model)
-                logger.info("Initialized SHAP explainer for credit model")
+                model_type_name = str(type(credit_model))
+                if 'RandomForest' in model_type_name or 'DecisionTree' in model_type_name or 'XGB' in model_type_name or 'LGBM' in model_type_name:
+                    credit_explainer = shap.TreeExplainer(credit_model)
+                    logger.info("Initialized SHAP TreeExplainer for credit model")
+                else:
+                    credit_explainer = shap.KernelExplainer(credit_model.predict_proba, np.zeros((1, len(CREDIT_FEATURES))))
+                    logger.info(f"Initialized SHAP KernelExplainer for credit model of type {model_type_name}")
             except Exception as e:
                 logger.warning(f"Could not initialize credit SHAP explainer: {e}")
                 
@@ -264,20 +277,7 @@ def home():
             <p>Predict fraud for credit card transactions</p>
             <h4>Required Fields:</h4>
             <pre>{{ credit_fields }}</pre>
-        </div>
-        
-        <div class="endpoint">
-            <h3><span class="method">POST</span> /explain/fraud</h3>
-            <p>Get SHAP explanation for fraud prediction</p>
-        </div>
-        
-        <div class="endpoint">
-            <h3><span class="method">POST</span> /explain/credit</h3>
-            <p>Get SHAP explanation for credit card prediction</p>
-        </div>
-        
-        <div class="endpoint">
-            <h3><span class="method">POST</span> /batch/fraud</h3>
+        </
             <p>Batch prediction for multiple fraud transactions</p>
         </div>
         

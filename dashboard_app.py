@@ -19,11 +19,11 @@ import requests
 import json
 
 # Configure the dashboard
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 app.title = "Advanced Fraud Detection Dashboard"
 
 # API Configuration
-API_BASE_URL = "http://localhost:5001"
+API_BASE_URL = "http://localhost:5000"
 
 # Load sample data for dashboard
 def load_dashboard_data():
@@ -120,6 +120,9 @@ app.layout = dbc.Container([
     # Tab content
     html.Div(id="tab-content"),
     
+    # Hidden div for storing data
+    dcc.Store(id='recent-predictions-store', data=[]),
+
     # Footer
     html.Hr(),
     html.Footer([
@@ -129,7 +132,7 @@ app.layout = dbc.Container([
     
 ], fluid=True)
 
-# Callback for tab content
+# Callback for rendering tab content
 @app.callback(
     Output("tab-content", "children"),
     Input("tabs", "active_tab")
@@ -241,7 +244,7 @@ def render_geographic_tab():
         color='Fraud_Rate',
         color_continuous_scale='Reds'
     )
-    geo_bar.update_xaxis(tickangle=45)
+    geo_bar.update_xaxes(tickangle=45)
     
     # Fraud rate by country
     fraud_rate_bar = px.bar(
@@ -252,7 +255,7 @@ def render_geographic_tab():
         color='Fraud_Rate',
         color_continuous_scale='Reds'
     )
-    fraud_rate_bar.update_xaxis(tickangle=45)
+    fraud_rate_bar.update_xaxes(tickangle=45)
     
     # World map simulation (using scatter plot)
     world_map = px.scatter(
@@ -292,27 +295,37 @@ def render_device_tab():
         return html.Div("Data not available")
     
     # Browser analysis
-    browser_fraud = fraud_data.groupby(['browser', 'class']).size().unstack(fill_value=0)
-    browser_fraud['fraud_rate'] = browser_fraud[1] / (browser_fraud[0] + browser_fraud[1]) * 100
-    
+    browser_fraud = fraud_data.groupby(['browser', 'class']).size().unstack(fill_value=0).reset_index()
+    browser_fraud.columns = ['browser', 'Non-Fraud', 'Fraud']
+    browser_fraud_melted = pd.melt(browser_fraud, id_vars='browser', value_vars=['Non-Fraud', 'Fraud'],
+                                   var_name='Transaction Type', value_name='Count')
+
     browser_bar = px.bar(
-        x=browser_fraud.index,
-        y=[browser_fraud[0], browser_fraud[1]],
+        browser_fraud_melted,
+        x='browser',
+        y='Count',
+        color='Transaction Type',
+        barmode='group',
         title="Fraud Cases by Browser",
-        labels={'x': 'Browser', 'y': 'Number of Transactions'},
-        color_discrete_map={'wide_variable_0': '#2E8B57', 'wide_variable_1': '#DC143C'}
+        labels={'browser': 'Browser', 'Count': 'Number of Transactions'},
+        color_discrete_map={'Non-Fraud': '#2E8B57', 'Fraud': '#DC143C'}
     )
     
     # Source analysis
-    source_fraud = fraud_data.groupby(['source', 'class']).size().unstack(fill_value=0)
-    source_fraud['fraud_rate'] = source_fraud[1] / (source_fraud[0] + source_fraud[1]) * 100
-    
+    source_fraud = fraud_data.groupby(['source', 'class']).size().unstack(fill_value=0).reset_index()
+    source_fraud.columns = ['source', 'Non-Fraud', 'Fraud']
+    source_fraud_melted = pd.melt(source_fraud, id_vars='source', value_vars=['Non-Fraud', 'Fraud'],
+                                  var_name='Transaction Type', value_name='Count')
+
     source_bar = px.bar(
-        x=source_fraud.index,
-        y=[source_fraud[0], source_fraud[1]],
+        source_fraud_melted,
+        x='source',
+        y='Count',
+        color='Transaction Type',
+        barmode='group',
         title="Fraud Cases by Traffic Source",
-        labels={'x': 'Source', 'y': 'Number of Transactions'},
-        color_discrete_map={'wide_variable_0': '#2E8B57', 'wide_variable_1': '#DC143C'}
+        labels={'source': 'Source', 'Count': 'Number of Transactions'},
+        color_discrete_map={'Non-Fraud': '#2E8B57', 'Fraud': '#DC143C'}
     )
     
     # Device risk heatmap (simulated)
@@ -584,7 +597,8 @@ def update_summary_cards(active_tab):
 
 # Callback for prediction
 @app.callback(
-    Output("prediction-results", "children"),
+    [Output("prediction-results", "children"),
+     Output("recent-predictions-store", "data")],
     [Input("predict-button", "n_clicks")],
     [dash.dependencies.State("purchase-value", "value"),
      dash.dependencies.State("age", "value"),
@@ -592,11 +606,12 @@ def update_summary_cards(active_tab):
      dash.dependencies.State("day-of-week", "value"),
      dash.dependencies.State("source", "value"),
      dash.dependencies.State("browser", "value"),
-     dash.dependencies.State("gender", "value")]
+     dash.dependencies.State("gender", "value"),
+     dash.dependencies.State("recent-predictions-store", "data")]
 )
-def make_prediction(n_clicks, purchase_value, age, hour_of_day, day_of_week, source, browser, gender):
+def make_prediction(n_clicks, purchase_value, age, hour_of_day, day_of_week, source, browser, gender, recent_predictions):
     if n_clicks is None:
-        return html.Div()
+        return html.Div(), dash.no_update
     
     # Prepare prediction data
     prediction_data = {
@@ -620,6 +635,16 @@ def make_prediction(n_clicks, purchase_value, age, hour_of_day, day_of_week, sou
         if response.status_code == 200:
             result = response.json()
             
+            # Update recent predictions
+            new_prediction = {
+                "timestamp": result['timestamp'],
+                "prediction": result['prediction'],
+                "risk_score": result['risk_score'],
+                "risk_level": result['risk_level']
+            }
+            recent_predictions.insert(0, new_prediction)
+            recent_predictions = recent_predictions[:5] # Keep last 5
+            
             # Determine alert color
             risk_level = result['risk_level']
             if risk_level == 'HIGH':
@@ -629,7 +654,7 @@ def make_prediction(n_clicks, purchase_value, age, hour_of_day, day_of_week, sou
             else:
                 alert_color = 'success'
             
-            return dbc.Alert([
+            alert = dbc.Alert([
                 html.H4(f"Prediction: {'🚨 FRAUD DETECTED' if result['prediction'] == 1 else '✅ LEGITIMATE TRANSACTION'}", 
                        className="alert-heading"),
                 html.P(f"Risk Score: {result['risk_score']:.3f}"),
@@ -640,11 +665,13 @@ def make_prediction(n_clicks, purchase_value, age, hour_of_day, day_of_week, sou
                 html.P(f"Timestamp: {result['timestamp']}", className="mb-0 text-muted")
             ], color=alert_color)
             
+            return alert, recent_predictions
+            
         else:
-            return dbc.Alert(f"API Error: {response.status_code}", color="danger")
+            return dbc.Alert(f"API Error: {response.status_code}", color="danger"), dash.no_update
             
     except Exception as e:
-        return dbc.Alert(f"Connection Error: {str(e)}", color="danger")
+        return dbc.Alert(f"Connection Error: {str(e)}", color="danger"), dash.no_update
 
 # Callback for API health check
 @app.callback(
@@ -652,6 +679,8 @@ def make_prediction(n_clicks, purchase_value, age, hour_of_day, day_of_week, sou
     Input("health-check-button", "n_clicks")
 )
 def check_api_health(n_clicks):
+    if n_clicks is None:
+        return dash.no_update
     try:
         response = requests.get(f"{API_BASE_URL}/health", timeout=5)
         if response.status_code == 200:
@@ -666,10 +695,28 @@ def check_api_health(n_clicks):
     except:
         return dbc.Alert("❌ Cannot connect to API", color="danger")
 
+# Callback to update recent predictions display
+@app.callback(
+    Output("recent-predictions", "children"),
+    Input("recent-predictions-store", "data")
+)
+def update_recent_predictions_display(recent_predictions):
+    if not recent_predictions:
+        return dbc.Alert("No recent predictions.", color="secondary")
+    
+    cards = []
+    for pred in recent_predictions:
+        card = dbc.Card([
+            dbc.CardBody([
+                html.H6(f"Risk: {pred['risk_level']}", className=f"text-{'danger' if pred['risk_level'] == 'HIGH' else 'warning' if pred['risk_level'] == 'MEDIUM' else 'success'}"),
+                html.P(f"Score: {pred['risk_score']:.3f}", className="mb-1"),
+                html.Small(f"Time: {pred['timestamp']}", className="text-muted")
+            ])
+        ], className="mb-2")
+        cards.append(card)
+        
+    return cards
+
 if __name__ == "__main__":
     print("🚀 Starting Advanced Fraud Detection Dashboard...")
-    print("📊 Dashboard will be available at: http://localhost:8050")
-    print("🔗 Make sure the API is running at: http://localhost:5001")
-    
-    # Run the dashboard
-    app.run_server(debug=True, host='0.0.0.0', port=8050)
+    app.run_server(debug=True, use_reloader=True)
