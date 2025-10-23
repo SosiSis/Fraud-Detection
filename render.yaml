@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: fraud-api
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn --workers 4 --bind 0.0.0.0:5000 serve_model:app"
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.19
+      - key: API_BASE_URL
+        fromService:
+          type: web
+          name: fraud-api
+          property: url
+
+  - type: web
+    name: fraud-dashboard
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn --workers 4 --bind 0.0.0.0:8050 dashboard_app:app.server"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.19
+      - key: API_BASE_URL
+        fromService:
+          type: web
+          name: fraud-api
+          property: url
