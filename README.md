@@ -284,7 +284,7 @@ The interactive dashboard provides comprehensive fraud monitoring capabilities:
 ### Single Container
 ```bash
 # Build image
-docker build -t fraud-detection-api .
+docker buildx build -t fraud-detection-api .
 
 # Run container
 docker run -p 5000:5000 \
