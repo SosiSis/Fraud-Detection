@@ -35,3 +35,7 @@ EXPOSE 8050
 # Health check for the API
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
+
+# Add startup script and make it executable
+COPY startup.sh .
+RUN chmod +x startup.sh

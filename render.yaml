@@ -3,20 +3,24 @@ services:
     name: fraud-api
     env: docker
     dockerfilePath: ./Dockerfile
-    dockerCommand: "gunicorn --bind 0.0.0.0:$PORT serve_model:app"
+    dockerCommand: "./startup.sh"
     healthCheckPath: /health
     envVars:
       - key: PORT
         value: 5000
+      - key: STARTUP_COMMAND
+        value: api
 
   - type: web
     name: fraud-dashboard
     env: docker
     dockerfilePath: ./Dockerfile
-    dockerCommand: "gunicorn --bind 0.0.0.0:$PORT dashboard_app:server"
+    dockerCommand: "./startup.sh"
     envVars:
       - key: PORT
         value: 8050
+      - key: STARTUP_COMMAND
+        value: dashboard
       - key: API_BASE_URL
         fromService:
           type: web
