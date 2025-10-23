@@ -24,6 +24,7 @@ load_dotenv()
 
 # Configure the dashboard
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
+server = app.server  # Expose the server for Gunicorn
 app.title = "Advanced Fraud Detection Dashboard"
 
 # API Configuration
