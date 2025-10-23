@@ -38,4 +38,4 @@ HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
 
 # Add startup script and make it executable
 COPY startup.sh .
-RUN chmod +x startup.sh
+RUN sed -i 's/\r$//' startup.sh && chmod +x startup.sh
