@@ -142,7 +142,7 @@ For production deployment with Docker:
 ./deploy.sh
 
 # Or manual Docker commands
-docker build -t fraud-detection-api .
+docker buildx build -t fraud-detection-api .
 docker run -p 5000:5000 fraud-detection-api
 ```
 
