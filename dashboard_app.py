@@ -30,6 +30,17 @@ app.title = "Advanced Fraud Detection Dashboard"
 
 # API Configuration
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:5000")
+
+# Fix for Render deployment - if no API_BASE_URL is set and we're in production
+if API_BASE_URL == "http://localhost:5000" and os.getenv("RENDER"):
+    # Extract the current domain from the request (in production)
+    import requests
+    try:
+        # Use the same domain but different path for API
+        API_BASE_URL = "https://fraud-detection-uqpo.onrender.com"
+    except:
+        pass
+
 print(f"🌐 Dashboard configured with API_BASE_URL: {API_BASE_URL}")
 
 # Create a session for connection pooling

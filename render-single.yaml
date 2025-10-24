@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: fraud-detection-complete
+    env: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: STARTUP_COMMAND
+        value: api
+      - key: API_BASE_URL
+        value: https://fraud-detection-uqpo.onrender.com

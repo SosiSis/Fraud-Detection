@@ -31,6 +31,12 @@ elif [ "$STARTUP_COMMAND" = "dashboard" ]; then
   python -c "import dashboard_app; print('dashboard_app imported successfully')"
   echo "Starting gunicorn..."
   exec python -m gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 300 --log-level info dashboard_app:server
+elif [ "$STARTUP_COMMAND" = "combined" ]; then
+  echo "Starting Combined Fraud Detection Application on port $PORT..."
+  echo "Testing Python imports..."
+  python -c "import serve_model, dashboard_app; print('All modules imported successfully')"
+  echo "Starting combined application..."
+  exec python combined_app.py
 else
   echo "Error: STARTUP_COMMAND environment variable not set or invalid."
   echo "Available values: 'api' or 'dashboard'"
