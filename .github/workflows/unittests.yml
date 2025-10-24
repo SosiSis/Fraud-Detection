@@ -248,7 +248,7 @@ jobs:
         export PORT=5000
         python serve_model.py &
         echo $! > api_pid.txt
-        sleep 10  # Give the server time to start
+        sleep 15  # Give the server more time to start and load models
       
     - name: Wait for API to be ready
       run: |
@@ -326,15 +326,15 @@ jobs:
         docker run -d -p 5000:5000 -e STARTUP_COMMAND=api -e PORT=5000 --name fraud-api-test fraud-detection-test
         
         # Wait for container to be ready
-        sleep 30
+        sleep 45
         
         # Test health endpoint
-        for i in {1..30}; do
+        for i in {1..60}; do
           if curl -f http://localhost:5000/health; then
             echo "✅ API container is healthy"
             break
           fi
-          if [ $i -eq 30 ]; then
+          if [ $i -eq 60 ]; then
             echo "❌ API container health check failed"
             docker logs fraud-api-test
             exit 1
