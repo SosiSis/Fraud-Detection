@@ -1,0 +1,10 @@
+# Fraud Detection API Service Configuration
+services:
+  - type: web
+    name: fraud-detection-api
+    env: docker
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: STARTUP_COMMAND
+        value: api
