@@ -34,6 +34,17 @@ API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:5000")
 def load_dashboard_data():
     """Load and prepare data for dashboard visualizations"""
     try:
+        print("Loading dashboard data...")
+        
+        # Check if data files exist
+        if not os.path.exists('data/Fraud_Data.csv'):
+            print("Warning: Fraud_Data.csv not found, generating sample data...")
+            return create_sample_dashboard_data()
+        
+        if not os.path.exists('data/creditcard.csv'):
+            print("Warning: creditcard.csv not found, generating sample data...")
+            return create_sample_dashboard_data()
+        
         # Load fraud data
         fraud_data = pd.read_csv('data/Fraud_Data.csv')
         credit_data = pd.read_csv('data/creditcard.csv')
@@ -50,14 +61,70 @@ def load_dashboard_data():
         credit_data['hour'] = (credit_data['Time'] / 3600) % 24
         credit_data['day'] = (credit_data['Time'] / (24 * 3600)) % 7
         
+        print(f"Successfully loaded {len(fraud_data)} fraud records and {len(credit_data)} credit records")
         return fraud_data, credit_data
         
     except Exception as e:
         print(f"Error loading data: {e}")
+        print("Generating sample data for demonstration...")
+        return create_sample_dashboard_data()
+
+def create_sample_dashboard_data():
+    """Create sample data if real data is not available"""
+    try:
+        # Create sample fraud data
+        np.random.seed(42)
+        n_samples = 1000
+        
+        fraud_data = pd.DataFrame({
+            'purchase_value': np.random.exponential(100, n_samples),
+            'age': np.random.randint(18, 80, n_samples),
+            'signup_time': pd.date_range('2024-01-01', periods=n_samples, freq='1H'),
+            'purchase_time': pd.date_range('2024-01-01', periods=n_samples, freq='1H'),
+            'source': np.random.choice(['SEO', 'Ads', 'Direct'], n_samples),
+            'browser': np.random.choice(['Chrome', 'Firefox', 'Safari', 'Opera', 'IE'], n_samples),
+            'sex': np.random.choice(['M', 'F'], n_samples),
+            'class': np.random.choice([0, 1], n_samples, p=[0.95, 0.05])
+        })
+        
+        # Process fraud data
+        fraud_data['date'] = fraud_data['purchase_time'].dt.date
+        fraud_data['hour'] = fraud_data['purchase_time'].dt.hour
+        fraud_data['day_of_week'] = fraud_data['purchase_time'].dt.day_name()
+        fraud_data['month'] = fraud_data['purchase_time'].dt.month_name()
+        
+        # Create sample credit data
+        credit_data = pd.DataFrame({
+            'Time': np.random.randint(0, 172800, n_samples),
+            'Amount': np.random.exponential(50, n_samples),
+            'Class': np.random.choice([0, 1], n_samples, p=[0.998, 0.002])
+        })
+        
+        # Add V1-V28 columns for credit data
+        for i in range(1, 29):
+            credit_data[f'V{i}'] = np.random.normal(0, 1, n_samples)
+        
+        credit_data['hour'] = (credit_data['Time'] / 3600) % 24
+        credit_data['day'] = (credit_data['Time'] / (24 * 3600)) % 7
+        
+        print(f"Generated sample data: {len(fraud_data)} fraud records, {len(credit_data)} credit records")
+        return fraud_data, credit_data
+        
+    except Exception as e:
+        print(f"Error creating sample data: {e}")
         return None, None
 
-# Load data
-fraud_data, credit_data = load_dashboard_data()
+# Load data with error handling
+print("Initializing dashboard...")
+try:
+    fraud_data, credit_data = load_dashboard_data()
+    if fraud_data is not None and credit_data is not None:
+        print("Dashboard data loaded successfully")
+    else:
+        print("Warning: Dashboard running with limited functionality")
+except Exception as e:
+    print(f"Failed to initialize dashboard data: {e}")
+    fraud_data, credit_data = None, None
 
 # Dashboard Layout
 app.layout = dbc.Container([

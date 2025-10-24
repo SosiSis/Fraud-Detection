@@ -690,14 +690,19 @@ def internal_error(error):
     logger.error(f"Internal server error: {error}")
     return jsonify({'error': 'Internal server error'}), 500
 
-if __name__ == '__main__':
-    # Load models on startup
-    logger.info("Starting Advanced Fraud Detection API...")
+# Initialize models on import (for gunicorn)
+logger.info("Loading models on module import...")
+try:
     load_models()
-    
-    # Run the app
+    logger.info("Models loaded successfully")
+except Exception as e:
+    logger.error(f"Failed to load models: {e}")
+    logger.error(traceback.format_exc())
+
+if __name__ == '__main__':
+    # Run the app directly (for development)
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('DEBUG', 'False').lower() == 'true'
     
-    logger.info(f"Starting server on port {port}")
+    logger.info(f"Starting development server on port {port}")
     app.run(host='0.0.0.0', port=port, debug=debug)

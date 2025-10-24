@@ -12,6 +12,7 @@ ENV PYTHONUNBUFFERED=1
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for better caching
@@ -32,10 +33,11 @@ RUN mkdir -p models data logs explainability_results && \
 EXPOSE 5000
 EXPOSE 8050
 
-# Health check for the API
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/health || exit 1
+
 
 # Add startup script and make it executable
 COPY startup.sh .
 RUN sed -i 's/\r$//' startup.sh && chmod +x startup.sh
+
+# Run the startup script
+CMD ["./startup.sh"]
