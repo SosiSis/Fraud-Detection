@@ -1,6 +1,7 @@
 services:
+  # API Service - Handles all fraud detection API endpoints
   - type: web
-    name: fraud-api
+    name: fraud-detection-api
     env: docker
     dockerfilePath: ./Dockerfile
     healthCheckPath: /health
@@ -8,8 +9,9 @@ services:
       - key: STARTUP_COMMAND
         value: api
     
+  # Dashboard Service - Interactive web interface
   - type: web
-    name: fraud-dashboard
+    name: fraud-detection-dashboard
     env: docker
     dockerfilePath: ./Dockerfile
     envVars:
@@ -18,5 +20,5 @@ services:
       - key: API_BASE_URL
         fromService:
           type: web
-          name: fraud-api
+          name: fraud-detection-api
           property: url

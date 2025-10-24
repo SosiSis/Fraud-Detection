@@ -1,0 +1,12 @@
+# Fraud Detection Dashboard Service Configuration
+services:
+  - type: web
+    name: fraud-detection-dashboard
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: STARTUP_COMMAND
+        value: dashboard
+      - key: API_BASE_URL
+        # Replace this with your actual API service URL after deploying the API
+        value: https://fraud-detection-api-XXXX.onrender.com
