@@ -29,6 +29,7 @@ app.title = "Advanced Fraud Detection Dashboard"
 
 # API Configuration
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:5000")
+print(f"🌐 Dashboard configured with API_BASE_URL: {API_BASE_URL}")
 
 # Load sample data for dashboard
 def load_dashboard_data():
@@ -698,10 +699,13 @@ def make_prediction(n_clicks, purchase_value, age, hour_of_day, day_of_week, sou
     
     try:
         # Make API call
+        print(f"Making API request to: {API_BASE_URL}/predict/fraud")
+        print(f"Request data: {prediction_data}")
+        
         response = requests.post(
             f"{API_BASE_URL}/predict/fraud",
             json=prediction_data,
-            timeout=10
+            timeout=15
         )
         
         if response.status_code == 200:
@@ -740,10 +744,49 @@ def make_prediction(n_clicks, purchase_value, age, hour_of_day, day_of_week, sou
             return alert, recent_predictions
             
         else:
-            return dbc.Alert(f"API Error: {response.status_code}", color="danger"), dash.no_update
+            error_msg = f"API Error: {response.status_code}"
+            try:
+                error_detail = response.json().get('error', 'Unknown error')
+                error_msg += f" - {error_detail}"
+            except:
+                error_msg += f" - {response.text[:100]}"
             
+            return dbc.Alert([
+                html.H4("❌ API Request Failed", className="alert-heading"),
+                html.P(error_msg),
+                html.P(f"API URL: {API_BASE_URL}/predict/fraud"),
+                html.P("Check if the API service is running and accessible.")
+            ], color="danger"), dash.no_update
+            
+    except requests.exceptions.ConnectionError:
+        return dbc.Alert([
+            html.H4("🔌 Connection Error", className="alert-heading"),
+            html.P("Cannot connect to the API service."),
+            html.P(f"API URL: {API_BASE_URL}"),
+            html.P("The API service might be down or not deployed yet."),
+            html.Hr(),
+            html.P("Possible solutions:", className="mb-1"),
+            html.Ul([
+                html.Li("Check if both API and Dashboard services are deployed"),
+                html.Li("Verify the API_BASE_URL environment variable"),
+                html.Li("Wait a few minutes for the API service to start up")
+            ])
+        ], color="warning"), dash.no_update
+        
+    except requests.exceptions.Timeout:
+        return dbc.Alert([
+            html.H4("⏱️ Request Timeout", className="alert-heading"),
+            html.P("The API request timed out."),
+            html.P("The API service might be overloaded or starting up.")
+        ], color="warning"), dash.no_update
+        
     except Exception as e:
-        return dbc.Alert(f"Connection Error: {str(e)}", color="danger"), dash.no_update
+        return dbc.Alert([
+            html.H4("❌ Unexpected Error", className="alert-heading"),
+            html.P(f"Error: {str(e)}"),
+            html.P(f"API URL: {API_BASE_URL}"),
+            html.P("Please check the browser console for more details.")
+        ], color="danger"), dash.no_update
 
 # Callback for API health check
 @app.callback(
@@ -752,20 +795,56 @@ def make_prediction(n_clicks, purchase_value, age, hour_of_day, day_of_week, sou
 )
 def check_api_health(n_clicks):
     if n_clicks is None:
-        return dash.no_update
+        # Auto-check on page load
+        try:
+            response = requests.get(f"{API_BASE_URL}/health", timeout=3)
+            if response.status_code == 200:
+                return dbc.Alert("✅ API is healthy", color="success")
+            else:
+                return dbc.Alert("❌ API health check failed", color="danger")
+        except:
+            return dbc.Alert([
+                html.P("❌ Cannot connect to API", className="mb-1"),
+                html.P(f"URL: {API_BASE_URL}", className="mb-0 small text-muted")
+            ], color="danger")
+    
     try:
-        response = requests.get(f"{API_BASE_URL}/health", timeout=5)
+        response = requests.get(f"{API_BASE_URL}/health", timeout=10)
         if response.status_code == 200:
             data = response.json()
+            models_status = data.get('models', {})
+            models_loaded = all(models_status.values()) if models_status else False
+            
             return dbc.Alert([
                 html.P("✅ API is healthy", className="mb-1"),
-                html.P(f"Status: {data['status']}", className="mb-1"),
-                html.P(f"Models loaded: {all(data['models'].values())}", className="mb-0")
+                html.P(f"Status: {data.get('status', 'Unknown')}", className="mb-1"),
+                html.P(f"Models loaded: {'✅ Yes' if models_loaded else '❌ No'}", className="mb-1"),
+                html.P(f"URL: {API_BASE_URL}", className="mb-0 small text-muted")
             ], color="success")
         else:
-            return dbc.Alert("❌ API is not responding", color="danger")
-    except:
-        return dbc.Alert("❌ Cannot connect to API", color="danger")
+            return dbc.Alert([
+                html.P("❌ API health check failed", className="mb-1"),
+                html.P(f"Status Code: {response.status_code}", className="mb-1"),
+                html.P(f"URL: {API_BASE_URL}", className="mb-0 small text-muted")
+            ], color="danger")
+    except requests.exceptions.ConnectionError:
+        return dbc.Alert([
+            html.P("🔌 Cannot connect to API", className="mb-1"),
+            html.P("The API service might not be deployed or accessible.", className="mb-1"),
+            html.P(f"URL: {API_BASE_URL}", className="mb-0 small text-muted")
+        ], color="danger")
+    except requests.exceptions.Timeout:
+        return dbc.Alert([
+            html.P("⏱️ API request timeout", className="mb-1"),
+            html.P("The API service is taking too long to respond.", className="mb-1"),
+            html.P(f"URL: {API_BASE_URL}", className="mb-0 small text-muted")
+        ], color="warning")
+    except Exception as e:
+        return dbc.Alert([
+            html.P("❌ Unexpected error", className="mb-1"),
+            html.P(f"Error: {str(e)}", className="mb-1"),
+            html.P(f"URL: {API_BASE_URL}", className="mb-0 small text-muted")
+        ], color="danger")
 
 # Callback to update recent predictions display
 @app.callback(

@@ -26,6 +26,7 @@ if [ "$STARTUP_COMMAND" = "api" ]; then
   exec python -m gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --log-level debug serve_model:app
 elif [ "$STARTUP_COMMAND" = "dashboard" ]; then
   echo "Starting Fraud Detection Dashboard on port $PORT..."
+  echo "API_BASE_URL: ${API_BASE_URL:-'not set'}"
   echo "Testing Python import..."
   python -c "import dashboard_app; print('dashboard_app imported successfully')"
   echo "Starting gunicorn..."
