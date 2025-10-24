@@ -23,14 +23,14 @@ if [ "$STARTUP_COMMAND" = "api" ]; then
   echo "Testing Python import..."
   python -c "import serve_model; print('serve_model imported successfully')"
   echo "Starting gunicorn..."
-  exec python -m gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --log-level debug serve_model:app
+  exec python -m gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 300 --keepalive 30 --max-requests 1000 --max-requests-jitter 100 --log-level info serve_model:app
 elif [ "$STARTUP_COMMAND" = "dashboard" ]; then
   echo "Starting Fraud Detection Dashboard on port $PORT..."
   echo "API_BASE_URL: ${API_BASE_URL:-'not set'}"
   echo "Testing Python import..."
   python -c "import dashboard_app; print('dashboard_app imported successfully')"
   echo "Starting gunicorn..."
-  exec python -m gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 120 --log-level debug dashboard_app:server
+  exec python -m gunicorn --bind 0.0.0.0:$PORT --workers 1 --timeout 300 --keepalive 30 --max-requests 1000 --max-requests-jitter 100 --log-level info dashboard_app:server
 else
   echo "Error: STARTUP_COMMAND environment variable not set or invalid."
   echo "Available values: 'api' or 'dashboard'"

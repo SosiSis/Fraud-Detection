@@ -20,11 +20,10 @@ import shap
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,  # Reduced log level for production
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler('fraud_detection_api.log'),
-        logging.StreamHandler(sys.stdout)
+        logging.StreamHandler(sys.stdout)  # Only stdout in production
     ]
 )
 logger = logging.getLogger(__name__)

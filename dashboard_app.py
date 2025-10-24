@@ -17,6 +17,7 @@ import dash_bootstrap_components as dbc
 from datetime import datetime, timedelta
 import requests
 import json
+import time
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -30,6 +31,13 @@ app.title = "Advanced Fraud Detection Dashboard"
 # API Configuration
 API_BASE_URL = os.getenv("API_BASE_URL", "http://localhost:5000")
 print(f"🌐 Dashboard configured with API_BASE_URL: {API_BASE_URL}")
+
+# Create a session for connection pooling
+session = requests.Session()
+session.headers.update({
+    'Content-Type': 'application/json',
+    'Connection': 'keep-alive'
+})
 
 # Load sample data for dashboard
 def load_dashboard_data():
@@ -698,15 +706,24 @@ def make_prediction(n_clicks, purchase_value, age, hour_of_day, day_of_week, sou
     }
     
     try:
-        # Make API call
+        # Make API call with retry logic
         print(f"Making API request to: {API_BASE_URL}/predict/fraud")
         print(f"Request data: {prediction_data}")
         
-        response = requests.post(
-            f"{API_BASE_URL}/predict/fraud",
-            json=prediction_data,
-            timeout=15
-        )
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                response = session.post(
+                    f"{API_BASE_URL}/predict/fraud",
+                    json=prediction_data,
+                    timeout=30
+                )
+                break  # Success, exit retry loop
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+                if attempt == max_retries - 1:  # Last attempt
+                    raise e
+                print(f"Attempt {attempt + 1} failed, retrying...")
+                time.sleep(1)  # Wait before retry
         
         if response.status_code == 200:
             result = response.json()
@@ -797,7 +814,7 @@ def check_api_health(n_clicks):
     if n_clicks is None:
         # Auto-check on page load
         try:
-            response = requests.get(f"{API_BASE_URL}/health", timeout=3)
+            response = session.get(f"{API_BASE_URL}/health", timeout=3)
             if response.status_code == 200:
                 return dbc.Alert("✅ API is healthy", color="success")
             else:
@@ -809,7 +826,7 @@ def check_api_health(n_clicks):
             ], color="danger")
     
     try:
-        response = requests.get(f"{API_BASE_URL}/health", timeout=10)
+        response = session.get(f"{API_BASE_URL}/health", timeout=15)
         if response.status_code == 200:
             data = response.json()
             models_status = data.get('models', {})
